@@ -1,0 +1,134 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="payMapper">
+	
+	<resultMap type="Pay" id="payResultSet">
+	
+		<id property="payNo" column="PAY_NO"/>
+		
+		<!-- DB 일반 컬럼에 해당하는 필드와 컬럼을 작성  -->
+		<result property="payTime" column="PAY_TIME"/>
+		<result property="payDay" column="PAY_DAY"/>
+		<result property="payExtra" column="PAY_EXTRA"/>
+		<result property="paySal" column="PAY_SAL"/>
+		<result property="payment" column="PAY_PAYMENT"/>
+		<result property="payCreateDate" column="PAY_CREATE_DT"/>
+		<result property="payStatus" column="PAY_STATUS"/>
+		<result property="memberNo" column="MEMBER_NO"/>
+		<result property="storeNo" column="STORE_NO"/>
+		<result property="memberName" column="MEMBER_NM"/>
+		
+	
+	</resultMap>
+	
+	<resultMap type="WorkCalendar" id="calendarResultSet">
+	
+		<id property="workNo" column="WORK_NO"/>
+		
+		<!-- DB 일반 컬럼에 해당하는 필드와 컬럼을 작성  -->
+		<result property="workDay" column="WORK_DAY"/>
+		<result property="workStart" column="WORK_START"/>
+		<result property="workEnd" column="WORK_END"/>
+		<result property="storeNo" column="STORE_NO"/>
+		<result property="memberNo" column="MEMBER_NO"/>
+		<result property="memberName" column="MEMBER_NM"/>
+		
+		
+	</resultMap>
+	
+	
+	<resultMap type="Employee" id="employeeResultSet">
+		<result property="memberNo" column="MEMBER_NO"/>
+		<result property="storeNo" column="STORE_NO"/>
+		<result property="sal" column="EMPLOYEE_SAL"/>
+	</resultMap>
+	
+	
+	<resultMap id="memberResultSet" type="Member" >
+		
+		<id property="memberNo" column="MEMBER_NO"/>
+		<result property="memberEmail" column="MEMBER_EMAIL"/>
+		<result property="memberPwd" column="MEMBER_PWD"/>
+		<result property="memberName" column="MEMBER_NM"/>
+		<result property="memberPhone" column="MEMBER_PHONE"/>
+		<result property="memberEnrollDate" column="MEMBER_ENROLL_DATE"/>
+		<result property="memberStatus" column="MEMBER_STATUS"/>
+		<result property="memberGrade" column="MEMBER_GRADE"/>
+		<result property="memberCheck" column="MEMBER_CHECK"/>
+	</resultMap>
+	
+	<!-- 알바생 이름, 번호 조회 -->
+	<select id="selectEmployeeList" parameterType="_int" resultMap="memberResultSet">
+		SELECT MEMBER_NM, MEMBER_NO
+		FROM EMPLOYEE
+		JOIN MEMBER USING(MEMBER_NO)
+		WHERE MEMBER_GRADE = 'E'
+		AND MEMBER_STATUS = 'Y'
+		AND STORE_NO = #{storeNo}
+	
+	</select>
+	
+	<!-- 알바생 일한 정보 조회! -->
+	<select id="selectEmployeeWork" parameterType="map" resultMap="calendarResultSet">
+		SELECT COUNT(*) AS WORK_START,  SUM(WORK_END - WORK_START) AS WORK_END 
+		FROM WORK_CALENDAL
+		WHERE TO_CHAR(WORK_DAY, 'YYYY-MM') = #{date}
+		GROUP BY MEMBER_NO
+		HAVING MEMBER_NO = #{memberNo}
+	</select>
+	
+	<select id="selectOnePay" parameterType="Pay" resultMap="payResultSet">
+		SELECT SUM(WEEK_SAL) AS PAY_SAL, SUM(WEEKLY_VACATION_PAY) AS PAY_EXTRA FROM
+      (SELECT WEEK, CNT_WEEK_DAY,  EMPLOYEE_SAL, TOTAL_TIME,  (EMPLOYEE_SAL * TOTAL_TIME) WEEK_SAL, 
+          CASE WHEN CNT_WEEK_DAY >=7 AND TOTAL_TIME >= 15 
+          THEN TOTAL_TIME / 5 *  EMPLOYEE_SAL 
+          ELSE 0
+          END WEEKLY_VACATION_PAY
+      FROM 
+          (SELECT C.*, (SELECT CNT_WEEK_DAY FROM
+              (SELECT WEEK, COUNT(WEEK) CNT_WEEK_DAY FROM
+                  (SELECT TO_DATE(#{payStatus} || '-01') + LEVEL - 1 AS DD,
+                      SUM(DECODE(TO_CHAR(TO_DATE(#{payStatus} || '-01') + LEVEL - 1,'D'),2,1,0))
+                      OVER(ORDER BY LEVEL) + 1 WEEK
+                  FROM DUAL
+                  <![CDATA[
+                  CONNECT BY LEVEL <= TO_NUMBER(TO_CHAR(LAST_DAY(TO_DATE(#{payStatus} || '-01')),'dd')))
+                  ]]>
+                  GROUP BY WEEK)
+                  WHERE C.WEEK = WEEK) CNT_WEEK_DAY
+          FROM
+              (SELECT WEEK, SUM(TOTAL_TIME) TOTAL_TIME, COUNT(WORK_DAY) WORKING_DAY,
+              (SELECT EMPLOYEE_SAL FROM EMPLOYEE WHERE MEMBER_NO=#{memberNo}) EMPLOYEE_SAL
+              FROM 
+                  (SELECT B.*, (TO_CHAR (WORK_DAY, 'fmiw')
+                                      - TO_CHAR (TRUNC (WORK_DAY, 'mm') + 1, 'fmiw') + 1) WEEK
+                  FROM 
+                      (SELECT WORK_DAY, SUM(WORK_END - WORK_START) TOTAL_TIME
+                      FROM WORK_CALENDAL
+                      WHERE MEMBER_NO = #{memberNo}
+                      AND TO_CHAR(WORK_DAY, 'YYYY-MM') = #{payStatus}
+                      GROUP BY WORK_DAY 
+                      ORDER BY WORK_DAY) B)
+              GROUP BY WEEK) C ))
+	
+	
+	</select>
+	
+	<!-- 급여 설정 입력 -->
+	<insert id="insertPay" parameterType="Pay" >
+		INSERT INTO PAY VALUES(SEQ_PNO.NEXTVAL, #{payTime}, #{payDay}, 
+								#{payExtra}, #{paySal}, #{payPayment}, 
+								#{payCreateDate}, DEFAULT, #{memberNo}, #{storeNo})
+		
+	</insert>
+	
+	<!-- 급여명세서 수정 -->
+	<update id="updatePay" parameterType="Pay">
+		UPDATE PAY SET PAY_TIME = #{payTime}, PAY_DAY = #{payDay}, PAY_EXTRA = #{payExtra}, 
+				PAY_SAL = #{paySal}, PAY_PAYMENT = #{payPayment} , PAY_CREATE_DT = SYSDATE
+		WHERE PAY_NO = #{payNo}
+	</update>
+	
+	
+
+</mapper>

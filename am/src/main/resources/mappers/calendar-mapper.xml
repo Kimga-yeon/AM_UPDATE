@@ -1,0 +1,213 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="calendarMapper">
+
+
+
+	<resultMap type="WorkCalendar" id="calendarResultSet">
+	
+		<id property="workNo" column="WORK_NO"/>
+		
+		<!-- DB 일반 컬럼에 해당하는 필드와 컬럼을 작성  -->
+		<result property="workDay" column="WORK_DAY"/>
+		<result property="workStart" column="WORK_START"/>
+		<result property="workEnd" column="WORK_END"/>
+		<result property="storeNo" column="STORE_NO"/>
+		<result property="memberNo" column="MEMBER_NO"/>
+		<result property="memberName" column="MEMBER_NM"/>
+		
+		
+	</resultMap>
+	
+	
+	<resultMap type="UpdateWorkCalendar" id="upCalendarResultSet">
+	
+		<id property="workNo" column="WORK_NO"/>
+		
+		<!-- DB 일반 컬럼에 해당하는 필드와 컬럼을 작성  -->
+		<result property="workDay" column="WORK_DAY"/>
+		<result property="beforeStart" column="WORK_START"/>
+		<result property="beforeEnd" column="WORK_END"/>
+		<result property="workStart" column="WORK_START"/>
+		<result property="workEnd" column="WORK_END"/>
+		<result property="storeNo" column="STORE_NO"/>
+		<result property="memberNo" column="MEMBER_NO"/>
+		<result property="beforeMemberNo" column="MEMBER_NO"/>
+		
+		
+	</resultMap>
+	
+	<resultMap type="Store" id="storeResultSet">
+		<id property="storeNo" column="STORE_NO"/>
+		<result property="storeName" column="STORE_NM"/>
+		<result property="storePhone" column="STORE_PHONE"/>
+		<result property="storeAddress" column="STORE_ADDR"/>
+		<result property="storeBizNo" column="STORE_BIZ_NO"/>
+		<result property="storeBizCheck" column="STORE_BIZ_CHECK"/>
+		<result property="memberNo" column="MEMBER_NO"/>
+	</resultMap>
+
+
+	<resultMap type="Employee" id="employeeResultSet">
+		
+			
+			<result property="employeeNo" column="MEMBER_NO"/>
+			<result property="storeNo" column="STORE_NO"/>
+			<result property="sal" column="EMPLOYEE_SAL"/>
+			
+		
+		
+		</resultMap>
+
+	<resultMap id="memberResultSet" type="Member" >
+		
+		<id property="memberNo" column="MEMBER_NO"/>
+		<result property="memberEmail" column="MEMBER_EMAIL"/>
+		<result property="memberPwd" column="MEMBER_PWD"/>
+		<result property="memberName" column="MEMBER_NM"/>
+		<result property="memberPhone" column="MEMBER_PHONE"/>
+		<result property="memberEnrollDate" column="MEMBER_ENROLL_DT"/>
+		<result property="memberStatus" column="MEMBER_STATUS"/>
+		<result property="memberGrade" column="MEMBER_GRADE"/>
+		<result property="memberCheck" column="MEMBER_CHECK"/>
+	</resultMap>
+	
+	
+	<resultMap type="PartTime" id="partTimeResultSet">
+	
+		<id property="partNo" column="PART_NO"/>
+		
+		<!-- DB 일반 컬럼에 해당하는 필드와 컬럼을 작성  -->
+		<result property="partName" column="PART_NM"/>
+		<result property="partStart" column="PART_START"/>
+		<result property="partEnd" column="PART_END"/>
+		<result property="storeNo" column="STORE_NO"/>
+		
+		
+	</resultMap>
+	
+	
+	
+	<resultMap type="NewsBoard" id="newsBoardResultSet">
+	
+		<id property="newsNo" column="NEWS_NO"/>
+		
+		<!-- DB 일반 컬럼에 해당하는 필드와 컬럼을 작성  -->
+		<result property="createDate" column="CREATE_DATE"/>
+		<result property="memberType" column="MEMBER_TYPE"/>
+		<result property="title" column="TITLE"/>
+		<result property="address" column="ADDRESS"/>
+		<result property="newsType" column="NEWS_TYPE"/>
+		
+		
+	</resultMap>
+	
+	
+
+	<!-- 사장님 가게 번호 조회 -->
+	<select id="selectStoreNo" parameterType="_int" resultType="_int">
+		SELECT STORE_NO
+		FROM STORE
+		WHERE MEMBER_NO = #{memberNo}
+	</select>
+	
+	<!-- 스케쥴 조회 (사장) -->
+	<select id="selectCalendarM" parameterType="_int" resultMap="calendarResultSet">
+		SELECT WORK_NO, STORE_NO,  MEMBER_NO, WORK_DAY, WORK_START, WORK_END, MEMBER_NM 
+		FROM WORK_CALENDAL JOIN MEMBER USING(MEMBER_NO)
+		WHERE STORE_NO =  #{storeNo}
+	</select>
+
+
+	<!-- 스케쥴 조회 (알바) -->
+	<select id="selectCalendarS" parameterType="_int" resultMap="calendarResultSet">
+		SELECT WORK_NO, STORE_NO,  MEMBER_NO, WORK_DAY, WORK_START, WORK_END, MEMBER_NM 
+		FROM WORK_CALENDAL JOIN MEMBER USING(MEMBER_NO)
+		WHERE MEMBER_NO = #{memberNo}
+	</select>
+	
+	
+	<!-- 사장 알바생 이름 ,번호목록 조회 -->
+	<select id="selectEName" parameterType="_int" resultMap="memberResultSet">
+		SELECT MEMBER_NM, MEMBER_NO
+		FROM MEMBER
+		WHERE MEMBER_NO IN(SELECT MEMBER_NO
+							FROM EMPLOYEE
+							WHERE STORE_NO = #{storeNo})
+	</select>
+	
+	
+	<!-- 사장 파트타임 목록 조회 -->
+	<select id="selectPList" parameterType="_int" resultMap="partTimeResultSet">
+		SELECT * FROM PART_TIME
+		WHERE STORE_NO = #{storeNo}
+		ORDER BY PART_START
+	</select>
+	
+	<!--  스케쥴 삽입 1개  -->
+	<insert id="insertCalendar" parameterType="WorkCalendar">
+		INSERT INTO WORK_CALENDAL
+		VALUES(SEQ_WNO.NEXTVAL, '${workDay}', ${workStart} , ${workEnd}, ${storeNo}, ${memberNo})
+		
+	</insert>
+	
+	
+	<!-- 스케쥴 업데이트 -->
+	<update id="updateCalendar" parameterType="UpdateWorkCalendar">
+	UPDATE WORK_CALENDAL SET  WORK_START = ${workStart}, WORK_END = ${workEnd} , MEMBER_NO = ${memberNo}
+	WHERE WORK_DAY = '${workDay}'  
+	AND  WORK_START = ${beforeStart} 
+	AND WORK_END = ${beforeEnd} 
+	AND MEMBER_NO = ${beforeMemberNo} 
+	AND  STORE_NO = ${storeNo}
+	</update>
+	
+	<!-- 스케쥴 삭제 -->
+	<delete id="deleteCalendar" parameterType="WorkCalendar">
+	DELETE FROM WORK_CALENDAL WHERE WORK_NO = 
+	(SELECT WORK_NO FROM WORK_CALENDAL WHERE WORK_DAY = '${workDay}' AND WORK_START = ${workStart}
+	AND WORK_END = ${workEnd} AND STORE_NO = ${storeNo} AND MEMBER_NO = ${memberNo})
+	</delete>
+	
+	
+	<!-- 파트타임 삭제 -->
+	<delete id="partTimeDelete" parameterType="PartTime">
+		DELETE FROM PART_TIME WHERE PART_NM = #{partName} AND STORE_NO = #{storeNo}
+	</delete>
+	
+	
+	<!-- 파트타임 업데이트 -->
+	<update id="partTimeUpdate" parameterType="PartTime">
+		UPDATE PART_TIME SET PART_NM = #{partName}, PART_START=${partStart}, PART_END=${partEnd} 
+		WHERE STORE_NO = #{storeNo} AND PART_NO= #{partNo}
+	</update>
+	
+	
+	<!--  파트타임 삽입 -->
+	<insert id="partTimeInsert" parameterType="PartTime">
+		INSERT INTO PART_TIME
+		VALUES(SEQ_TNO.NEXTVAL, #{partName}, ${partStart}, ${partEnd}, #{storeNo})
+	</insert>
+	
+	
+	<!-- 메인화면 알바생 정보 목록 -->
+	<select id="selectMList" parameterType="_int" resultMap="memberResultSet">
+	SELECT MEMBER_NM,  MEMBER_PHONE, MEMBER_ENROLL_DT
+	FROM MEMBER
+	WHERE MEMBER_NO IN(SELECT MEMBER_NO FROM EMPLOYEE WHERE STORE_NO = #{storeNo})
+	</select>
+	
+	
+	<!-- 뉴스보드리스트 -->
+	<select id="selectNewsList" parameterType="string" resultMap="newsBoardResultSet">
+		  SELECT *  FROM NEWS_BOARD
+   		 WHERE MEMBER_TYPE = #{memberGrade} AND NEWS_TYPE = 1
+	</select>
+	
+	
+	<!-- 생활뉴스리스트 -->
+	<select id="selectNews2List" resultMap="newsBoardResultSet">
+		  SELECT TITLE, ADDRESS FROM NEWS_BOARD
+		  WHERE NEWS_TYPE = 2
+	</select>
+</mapper>

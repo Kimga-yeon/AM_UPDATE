@@ -1,0 +1,123 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd" >
+<mapper namespace="paystubMapper">
+	
+	<resultMap type="PayStub" id="PayStubResultSet">
+        <id property="payNo" column="PAY_NO"/>
+        <result property="payTime" column="PAY_TIME"/>
+        <result property="payDay" column="PAY_DAY"/>
+        <result property="payExtra" column="PAY_EXTRA"/>
+        <result property="paySal" column="PAY_SAL"/>
+        <result property="payPayment" column="PAY_PAYMENT"/>
+        <result property="payCreateDate" column="PAY_CREATE_DT"/>
+        <result property="payStatus" column="PAY_STATUS"/>
+        <result property="memberNo" column="MEMBER_NO"/>
+        <result property="storeNo" column="STORE_NO"/>
+        <result property="storeName" column="STORE_NM"/>
+        <result property="memberName" column="MEMBER_NM"/>
+        <result property="employeeSal" column="EMPLOYEE_SAL"/>
+     
+    </resultMap>
+    
+    <resultMap type="Paystubplus" id="requestResultSet">
+    	<id property="corrNo" column="CORR_NO"/>
+    	  <result property="corrContent" column="CORR_CONTENT"/>
+        <result property="corrCreateDt" column="CORR_CREATE_DT"/>
+        <result property="corrModifyDt" column="CORR_MODIFY_DT"/>
+        <result property="corrStatus" column="CORR_STATUS"/>
+        <result property="corrResult" column="CORR_RESULT"/>
+        <result property="memberNo" column="MEMBER_NO"/>
+        <result property="StoreNo" column="STORE_NO"/>
+        <result property="payNo" column="PAY_NO"/>
+      	<result property="memberName" column="MEMBER_NM"/>
+    </resultMap>
+    
+    	
+    
+	
+	
+	
+
+	
+	
+<!-- 	<select id="selectList" parameterType="_int" resultMap="PayStubResultSet">
+		SELECT PAY_NO, MEMBER_NM, STORE_NM ,PAY_TIME,PAY_DAY,PAY_EXTRA,PAY_SAL,PAY_PAYMENT,PAY_CREATE_DT,PAY_STATUS 
+		FROM PAY
+		JOIN MEMBER USING (MEMBER_NO)
+		JOIN STORE USING(STORE_NO)
+		WHERE STORE_NO= (SELECT STORE_NO FROM STORE  WHERE MEMBER_NO = #{memberNo})
+		ORDER BY PAY_NO ASC
+	</select> -->
+	
+	
+		<select id="selectList" parameterType="_int" resultMap="PayStubResultSet">
+		 SELECT PAY.PAY_NO, PAY.PAY_TIME, PAY.PAY_DAY, PAY.PAY_EXTRA, PAY.PAY_SAL, PAY.PAY_PAYMENT, 
+        PAY.PAY_CREATE_DT, PAY.PAY_STATUS, PAY.MEMBER_NO, STORE.STORE_NO, STORE.STORE_NM, MEMBER.MEMBER_NM
+		FROM PAY, STORE, MEMBER   
+		WHERE PAY.STORE_NO = STORE.STORE_NO
+		AND PAY.MEMBER_NO = MEMBER.MEMBER_NO
+		AND STORE.STORE_NO=(SELECT STORE_NO FROM STORE  WHERE MEMBER_NO = #{memberNo})
+		ORDER BY PAY.PAY_NO ASC
+
+	</select> 
+	
+	<select id="selectone" parameterType="_int" resultMap="PayStubResultSet"  >
+		SELECT P.* , EMPLOYEE_SAL, MEMBER_NM, STORE_NM
+		FROM PAY P
+		JOIN EMPLOYEE E ON P.MEMBER_NO = E.MEMBER_NO
+		JOIN MEMBER M ON P.MEMBER_NO = M.MEMBER_NO
+		JOIN STORE S ON P.STORE_NO = S.STORE_NO
+		WHERE PAY_NO=#{payNo}
+	
+	</select>
+	
+	<select id="requestlist" parameterType="_int" resultMap="requestResultSet">
+		
+			SELECT P.*, M.MEMBER_NM
+			FROM PAY_CORR P
+			JOIN STORE S ON(P.STORE_NO=S.STORE_NO)
+			JOIN MEMBER M ON(P.MEMBER_NO = M.MEMBER_NO)
+			WHERE S.MEMBER_NO = #{memberNo}
+	</select>
+	
+	<select id="requestone" parameterType="_int" resultMap="requestResultSet">
+	
+			SELECT * FROM PAY_CORR WHERE corr_no=#{corrNo}
+	</select>
+	
+	
+	<update id="correction" parameterType="_int" >
+			
+	UPDATE   PAY_CORR  SET CORR_STATUS='N' ,CORR_MODIFY_DT=SYSDATE WHERE CORR_NO=#{corrNo} 
+	</update>
+	
+	<insert id="transmit" parameterType="CorrectionReply">
+	
+	
+		INSERT INTO PAY_CORR_RE VALUES(SEQ_RNO.NEXTVAL, #{corrReContent},SYSDATE, #{corrNo}, #{storeNo})
+	</insert>
+	
+	<select id="requestMonthlist" parameterType="PayStub" resultMap="requestResultSet">
+			SELECT P.*, M.MEMBER_NM
+			FROM PAY_CORR P
+			JOIN STORE S ON(P.STORE_NO=S.STORE_NO)
+			JOIN MEMBER M ON(P.MEMBER_NO = M.MEMBER_NO)
+			WHERE S.MEMBER_NO = #{memberNo}
+			AND EXTRACT(MONTH FROM CORR_CREATE_DT) = #{payDay}
+	</select>
+	
+	<!-- 급여명세서 월별 조회 -->
+	<select id="selectPaystub" parameterType="PayStub" resultMap="PayStubResultSet">
+			SELECT P.*, S.STORE_NM, M.MEMBER_NM
+			FROM PAY P
+			JOIN STORE S ON(P.STORE_NO=S.STORE_NO)
+			JOIN MEMBER M ON(P.MEMBER_NO = M.MEMBER_NO)
+			WHERE S.MEMBER_NO = #{memberNo}
+			AND EXTRACT(MONTH FROM PAY_CREATE_DT) = #{payDay}
+	</select>
+	
+	<update id="check" parameterType="_int">
+	update pay_corr set corr_status='Y' where CORR_NO=#{corrNo} 
+	</update>
+  
+</mapper>
