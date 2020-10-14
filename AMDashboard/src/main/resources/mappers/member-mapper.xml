@@ -32,7 +32,10 @@
     <result property="memberEmail" column="MEMBER_EMAIL"/>
     <result property="memberName" column="MEMBER_NM"/>
     <result property="memberPhone" column="MEMBER_PHONE"/>
+    <result property="zipcode" column="ZIPCODE"/>
     <result property="adminAddress" column="ADMIN_ADDRESS"/>
+    <result property="detailedAddress" column="DETAILED_ADDRESS"/>
+    
     <result property="aboutMe" column="ABOUT_ME"/>
   </resultMap>
   
@@ -40,7 +43,9 @@
   <!-- 관리자 정보 수정  -->
 	<update id="updateProfile" parameterType="Admin">
 	UPDATE ADMIN SET
+		DETAILED_ADDRESS = #{detailedAddress},
 		ADMIN_ADDRESS = #{adminAddress},
+		ZIPCODE = #{zipcode},
 		ABOUT_ME = #{aboutMe}
 		WHERE MEMBER_NO = #{memberNo}
 	</update>

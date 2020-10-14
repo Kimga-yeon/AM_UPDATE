@@ -14,6 +14,8 @@ public class Member {
     private String memberGrade;
     private String memberCheck;
 	private String adminAddress;
+	private String zipcode;
+	private String detailedAddress;
 	private String aboutMe;
     
    public Member() {
@@ -21,7 +23,7 @@ public class Member {
 
 public Member(int memberNo, String memberEmail, String memberPwd, String memberName, String memberPhone,
 		String memberAddr, Date memberEnrollDate, String memberStatus, String memberGrade, String memberCheck,
-		String adminAddress, String aboutMe) {
+		String adminAddress, String zipcode, String detailedAddress, String aboutMe) {
 	super();
 	this.memberNo = memberNo;
 	this.memberEmail = memberEmail;
@@ -34,6 +36,8 @@ public Member(int memberNo, String memberEmail, String memberPwd, String memberN
 	this.memberGrade = memberGrade;
 	this.memberCheck = memberCheck;
 	this.adminAddress = adminAddress;
+	this.zipcode = zipcode;
+	this.detailedAddress = detailedAddress;
 	this.aboutMe = aboutMe;
 }
 
@@ -125,6 +129,22 @@ public void setAdminAddress(String adminAddress) {
 	this.adminAddress = adminAddress;
 }
 
+public String getZipcode() {
+	return zipcode;
+}
+
+public void setZipcode(String zipcode) {
+	this.zipcode = zipcode;
+}
+
+public String getDetailedAddress() {
+	return detailedAddress;
+}
+
+public void setDetailedAddress(String detailedAddress) {
+	this.detailedAddress = detailedAddress;
+}
+
 public String getAboutMe() {
 	return aboutMe;
 }
@@ -138,11 +158,11 @@ public String toString() {
 	return "Member [memberNo=" + memberNo + ", memberEmail=" + memberEmail + ", memberPwd=" + memberPwd
 			+ ", memberName=" + memberName + ", memberPhone=" + memberPhone + ", memberAddr=" + memberAddr
 			+ ", memberEnrollDate=" + memberEnrollDate + ", memberStatus=" + memberStatus + ", memberGrade="
-			+ memberGrade + ", memberCheck=" + memberCheck + ", adminAddress=" + adminAddress + ", aboutMe=" + aboutMe
-			+ "]";
+			+ memberGrade + ", memberCheck=" + memberCheck + ", adminAddress=" + adminAddress + ", zipcode=" + zipcode
+			+ ", detailedAddress=" + detailedAddress + ", aboutMe=" + aboutMe + "]";
 }
 
-   
-   
-    
+
+
+
 }

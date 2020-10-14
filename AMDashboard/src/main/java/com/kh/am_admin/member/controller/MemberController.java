@@ -46,7 +46,7 @@ public class MemberController {
 		
         if(loginMember == null) {
         	status = "error";
-			msg = "관리자 정보 수정 실패";
+			msg = "로그인 실패";
             
             return "redirect:/"; 
 
@@ -99,7 +99,7 @@ public class MemberController {
 		
 		if(result > 0 ) {
 			status = "success";
-			msg = "회원 정보 수정 성공";
+			msg = "관리자 정보 수정 성공";
 
 			model.addAttribute("loginMember", admin);
 

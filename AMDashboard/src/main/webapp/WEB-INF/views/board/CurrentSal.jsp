@@ -102,15 +102,13 @@
                                      <td>
                                         <select id="selectYear" name="currentYear">
                                           <option selected>--선택-- </option>
-                                          <c:set var="now" value="<%=new java.util.Date()%>" />
-										  <c:set var="sysYear"><fmt:formatDate value="${now}" pattern="yyyy" /></c:set>
-										  
-										   
-                                          <c:forEach var="year" begin="2016" end="${sysYear}" step="1">
-                                           	  <option value="${year}">${year}</option>
-										  </c:forEach>
-                                          
-                                             
+	                                          <c:set var="now" value="<%=new java.util.Date()%>" />
+											  <c:set var="sysYear"><fmt:formatDate value="${now}" pattern="yyyy" /></c:set>
+											  
+											   
+		                                          <c:forEach var="year" begin="2016" end="${sysYear}" step="1">
+		                                           	  <option value="${year}">${year}</option>
+												  </c:forEach>
                                         </select>
                                     </td>
                                 </tr>
